@@ -1,9 +1,22 @@
-#Simple Black Jack game
-#Author: Elliot Huh, GitHub: ElliotH2
-#Created: July 6, 2025
-#Declare initial balance, then choose your wager
-#Stand or hit, whoever is closer to 21 without going over wins the round
-#Game will continue until the balance is empty
+# Simple Blackjack Game (Terminal-Based)
+# Author: Elliot Huh | GitHub: ElliotH2
+# Created: July 6, 2025
+#
+# Description:
+# A terminal-based Blackjack game where the player competes against a dealer.
+# The player starts with a user-defined balance and can wager money each round.
+# The game follows standard Blackjack rules: hit or stand to get as close to 21
+# as possible without going over. Aces can count as 1 or 11.
+#
+# Features:
+# - Input validation for balance and wagers
+# - Card drawing and deck management
+# - Player and dealer logic
+# - Win/loss balance tracking
+# - Game continues until the player quits or runs out of money
+#
+# Run this file with Python 3 in your terminal.
+# Example: python3 blackjack.py
 
 import random
 
@@ -70,12 +83,12 @@ def deck_manager(): #Initialize deck
     return [f"{rank}{suit}" for rank in ranks for suit in suits] #Combine ranks with suites
 
 balance = initial_balance #Get balance without removing the initial balance
-def play_game(): #Logic for each round
-    global balance
+
+def choose_wager(balance):
     print(f"Your Current Balance is ${balance}")
 
-    #Chooose how much of your balance you would like to wager
-    while True: #Error handling wager input
+    # Choose how much of your balance you would like to wager
+    while True:  # Error handling wager input
         try:
             wager = int(input("Choose how much of your balance you would like to wager: "))
             if wager <= 0:
@@ -84,12 +97,14 @@ def play_game(): #Logic for each round
                 print("You don't have enough money\n")
             elif wager == balance:
                 print("You've gone all in, Good Luck")
-                break
-            else:  #Wager input needs to be positive and more than the player's balance
-                break
-        except ValueError: #If string inputted
+                return wager
+            else:  # Wager input needs to be positive and more than the player's balance
+                return wager
+        except ValueError:  # If string inputted
             print("Invalid input, numbers only\n")
 
+def play_game(balance): #Logic for each round
+    wager = choose_wager(balance)
 
     deck = deck_manager() #Initialize Deck
     random.shuffle(deck) #Shuffle deck
@@ -132,10 +147,9 @@ def play_game(): #Logic for each round
     if player_hand_value > 21: #Player busts
         print ("Your Hand Value:",player_hand_value)
         print ("Bust!")
-        balance = balance - wager #Calculate new balance
+        balance -= wager #Calculate new balance
         print (f"You lost ${wager}\nNew Balance is ${balance}\n")
-        return
-
+        return balance
 
     #Dealers turn
     while dealer_hand_value < 17: #Dealer hits if their hand values 16 or below
@@ -148,58 +162,59 @@ def play_game(): #Logic for each round
     if dealer_hand_value > 21:  #If dealer busts
         print("\nDealers Hand Value:",dealer_hand_value)
         print("Dealer Bust!")
-        balance = balance + wager #Player wins wager, calculate new balance
+        balance += wager #Player wins wager, calculate new balance
         print (f"You won ${wager}\nNew Balance is ${balance}")
-        return
+        return balance
 
     if player_hand_value > dealer_hand_value: #If player doesn't bust and closer to 21 than dealer
         print("\nYour Hand Value:",player_hand_value,"Against Dealers Hand Value:",dealer_hand_value)
-        balance = balance + wager  #Player wins wager, calculate new balance
+        balance += wager  #Player wins wager, calculate new balance
         print(f"You won ${wager}\nNew Balance is ${balance}")
-        return
+        return balance
 
     if player_hand_value < dealer_hand_value: #If player doesn't bust but dealer is closer to 21
         print("\nYour Hand Value:", player_hand_value, "Against Dealers Hand Value:", dealer_hand_value)
-        balance = balance - wager #Player loses calculate new balance
+        balance -= wager #Player loses calculate new balance
         print(f"You Lost ${wager}\nNew Balance is ${balance}")
-        return
+        return balance
 
     else: #Result of a tie, player doesn't win or lose any money
         print("\nYour Hand Value:", player_hand_value, "Against Dealers Hand Value:", dealer_hand_value)
         print("Tie")
         print(f"Your balance stays at ${balance}")
+        return balance
 
-play_game() #Initial game
+def menu(balance):
+    game = True  # Menu loop logic
+    while game:  # After the initial game, gives player the choice to play another round
 
-Game = True #Menu loop logic
+        if balance == 0:  # If you lost all your money
+            print(f"\nYou initially had ${initial_balance}")
+            print(f"Now you have ${balance}")
+            print("You lost all your money")
+            print("Game Over")
+            game = False
 
-if balance == 0: #If you lost all your money
-    print(f"\nYou initially had ${initial_balance}")
-    print(f"Now you have ${balance}")
-    print("You lost all your money")
-    print("Game Over")
-    Game = False
+        print("\nChoose 1 to play another round")
+        print("Choose 2 to Quit")
+        player_choice = input("Your Choice: ")
+        print("\n")
 
-while Game: #After the initial game, gives player the choice to play another round
-    print("\nChoose 1 to play another round")
-    print("Choose 2 to Quit")
-    player_continue= input("Your Choice: ")
-    print ("\n")
+        if player_choice == '1':
+            balance = play_game(balance)
 
-    if player_continue == '1':
-        play_game()
+        if player_choice == '2':  # If player quits, display results
+            print(f"\nYou initially had ${initial_balance}")
+            print(f"Now you have ${balance}")
+            balance_difference = balance - initial_balance
+            if balance_difference > 0:  # If player made money
+                print(f"Your up by ${balance_difference}")
+            elif balance_difference < 0:  # If player lost money
+                print(f"Your down by ${abs(balance_difference)}")
+            else:  # If player broke even
+                print("You broke even")
+            print("\nThank You for playing\nGoodbye")
+            game = False
 
-    if player_continue == '2': #If player quits, display results
-        print(f"\nYou initially had ${initial_balance}")
-        print(f"Now you have ${balance}")
-        balance_difference =  balance - initial_balance
-        if balance_difference > 0: #If player made money
-            print (f"Your up by ${balance_difference}")
-        elif balance_difference < 0: #If player lost money
-            print (f"Your down by ${abs(balance_difference)}")
-        else: #If player broke even
-            print ("You broke even")
-        print("\nThank You for playing\nGoodbye")
-
-        Game = False
-
+balance = play_game(balance) #Initial game
+menu(balance) #Loop
